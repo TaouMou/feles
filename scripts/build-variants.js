@@ -27,6 +27,7 @@ const variants = [
 		accent: {
 			"#8abbaf": "#3574f0", // accent
 			"#98c3b9": "#366ace", // accent hover
+			"#7eaba0": "#366ace", // status bar hover, a step darker than the accent
 			"#0d1212": "#ffffff", // text on accent
 			"#3f5050": "#2a4170", // text selection
 			"#b6e3d6": "#99bbff", // match highlight on selection
@@ -97,6 +98,7 @@ const variants = [
 		accent: {
 			"#8abbaf": "#d7a54b", // accent
 			"#98c3b9": "#e0b462", // accent hover
+			"#7eaba0": "#c49644", // status bar hover, a step darker than the accent
 			"#0d1212": "#1a1408", // text on accent
 			"#3f5050": "#574930", // text selection
 			"#b6e3d6": "#f0d49a", // match highlight on selection
@@ -152,6 +154,7 @@ const variants = [
 		accent: {
 			"#8abbaf": "#a895db", // accent
 			"#98c3b9": "#b4a3e2", // accent hover
+			"#7eaba0": "#9988c7", // status bar hover, a step darker than the accent
 			"#0d1212": "#16121f", // text on accent
 			"#3f5050": "#443f5c", // text selection
 			"#b6e3d6": "#d9ccf5", // match highlight on selection
@@ -207,6 +210,7 @@ const variants = [
 		accent: {
 			"#8abbaf": "#a7c080", // accent
 			"#98c3b9": "#b3c991", // accent hover
+			"#7eaba0": "#98af74", // status bar hover, a step darker than the accent
 			"#0d1212": "#141a0c", // text on accent
 			"#3f5050": "#424d38", // text selection
 			"#b6e3d6": "#d5e5bd", // match highlight on selection
@@ -260,6 +264,7 @@ const variants = [
 		accent: {
 			"#8abbaf": "#b4b9c2", // accent
 			"#98c3b9": "#c3c7cf", // accent hover
+			"#7eaba0": "#a5a9b2", // status bar hover, a step darker than the accent
 			"#0d1212": "#16181c", // text on accent
 			"#3f5050": "#3c4048", // text selection
 			"#b6e3d6": "#e2e4e8", // match highlight on selection
