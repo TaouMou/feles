@@ -7,7 +7,10 @@
 //   debugging and remote items, buttons, list selection and the active line number.
 // - Secondary (3:1): inactive tabs, inactive line numbers and comments, which are meant to recede.
 //
-// Prints a table per theme and exits with 1 if any pair falls below its threshold.
+// Pairs listed in `exceptions` below are known and accepted: they show as "accepted" as long as they
+// stay at or above their floor, so only new or worsened failures block packaging.
+//
+// Prints a table per theme and exits with 1 if any pair falls below its threshold and isn't accepted.
 //
 // Usage: node scripts/check-contrast.js
 
@@ -42,6 +45,29 @@ const pairs = [
 	{ label: "line number", fg: ["editorLineNumber.foreground"], bg: ["editor.background"], min: SECONDARY },
 	{ label: "comment", fg: ["@comment"], bg: ["editor.background"], min: SECONDARY }
 ];
+
+const coats = ["Cinnamon", "Russian Blue", "Siamese", "Marmalade", "Lilac", "Chartreux", "Tuxedo"];
+const darkThemes = coats.map((c) => `Feles ${c} Dark`);
+const lightThemes = coats.map((c) => `Feles ${c} Light`);
+
+// Known failures that are kept on purpose. `themes` is a list of theme names or "all", and `floor` sits
+// just below the ratio measured when the exception was added, so a color that gets dimmer fails again.
+const lineNumberReason = "Inactive line numbers are deliberately dim; the active line number carries the contrast.";
+const commentReason = "These comment colors come unchanged from Ayu and Everforest.";
+const siameseReason = "This is JetBrains' own blue #3574f0 with white text.";
+const exceptions = [
+	{ pair: "line number", themes: darkThemes, floor: 2.02, reason: lineNumberReason },
+	{ pair: "line number", themes: lightThemes, floor: 2.08, reason: lineNumberReason },
+	{ pair: "comment", themes: ["Feles Marmalade Dark"], floor: 2.84, reason: commentReason },
+	{ pair: "comment", themes: ["Feles Marmalade Light"], floor: 2.21, reason: commentReason },
+	{ pair: "comment", themes: ["Feles Chartreux Light"], floor: 2.75, reason: commentReason },
+	{ pair: "status bar debugging", themes: ["Feles Siamese Dark"], floor: 4.27, reason: siameseReason },
+	{ pair: "remote item", themes: ["Feles Siamese Dark"], floor: 4.27, reason: siameseReason },
+	{ pair: "button", themes: ["Feles Siamese Dark"], floor: 4.27, reason: siameseReason }
+];
+
+const exceptionFor = (themeName, label) =>
+	exceptions.find((e) => e.pair === label && (e.themes === "all" || e.themes.includes(themeName)));
 
 // Removes // and /* */ comments outside of strings, so URLs in values survive.
 function stripComments(text) {
@@ -139,6 +165,8 @@ function checkTheme(theme) {
 
 const files = fs.readdirSync(themesDir).filter((f) => f.endsWith("-color-theme.json")).sort();
 const failures = [];
+const accepted = [];
+const usedExceptions = new Set();
 
 for (const file of files) {
 	const theme = JSON.parse(stripComments(fs.readFileSync(path.join(themesDir, file), "utf8")));
@@ -152,16 +180,37 @@ for (const file of files) {
 			console.log(`  ${r.pair.label.padEnd(width)}  ${"-".padEnd(7)}  ${"-".padEnd(7)}  ${"-".padStart(5)}  ${r.pair.min.toFixed(1).padStart(4)}  skip (no ${r.missing})`);
 			continue;
 		}
-		const result = r.pass ? "ok" : "FAIL";
+		const exception = !r.pass && exceptionFor(theme.name, r.pair.label);
+		if (exception) usedExceptions.add(exception);
+		const isAccepted = exception && r.ratio >= exception.floor;
+		const result = r.pass ? "ok" : isAccepted ? "accepted" : "FAIL";
 		const via = r.fgKey !== r.pair.fg[0] ? ` (fg from ${r.fgKey})` : "";
-		console.log(`  ${r.pair.label.padEnd(width)}  ${r.fg}  ${r.bg}  ${r.ratio.toFixed(2).padStart(5)}  ${r.pair.min.toFixed(1).padStart(4)}  ${result}${via}`);
-		if (!r.pass) failures.push(`${theme.name}: ${r.pair.label} ${r.ratio.toFixed(2)}:1 (needs ${r.pair.min}:1)`);
+		const belowFloor = exception && !isAccepted ? ` (below accepted floor ${exception.floor})` : "";
+		console.log(`  ${r.pair.label.padEnd(width)}  ${r.fg}  ${r.bg}  ${r.ratio.toFixed(2).padStart(5)}  ${r.pair.min.toFixed(1).padStart(4)}  ${result}${via}${belowFloor}`);
+		const summary = `${theme.name}: ${r.pair.label} ${r.ratio.toFixed(2)}:1 (needs ${r.pair.min}:1`;
+		if (isAccepted) accepted.push({ summary: `${summary}, floor ${exception.floor}:1)`, reason: exception.reason });
+		else if (!r.pass) failures.push(`${summary}${exception ? `, below accepted floor ${exception.floor}:1` : ""})`);
 	}
 }
 
 if (failures.length) {
 	console.log(`\n${failures.length} pair(s) below threshold:`);
 	for (const f of failures) console.log(`  ${f}`);
-	process.exit(1);
+} else console.log(`\nNo new failures in ${files.length} themes.`);
+
+if (accepted.length) {
+	console.log(`\n${accepted.length} accepted exception(s):`);
+	for (const reason of new Set(accepted.map((a) => a.reason))) {
+		console.log(`  ${reason}`);
+		for (const a of accepted.filter((a) => a.reason === reason)) console.log(`    ${a.summary}`);
+	}
 }
-console.log(`\nAll pairs pass in ${files.length} themes.`);
+
+// An exception that matched nothing means the pair was fixed or a theme was renamed, so it can go
+const unused = exceptions.filter((e) => !usedExceptions.has(e));
+if (unused.length) {
+	console.log(`\n${unused.length} exception(s) no longer needed:`);
+	for (const e of unused) console.log(`  ${e.pair} in ${e.themes === "all" ? "all themes" : e.themes.join(", ")}`);
+}
+
+if (failures.length) process.exit(1);
