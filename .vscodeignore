@@ -7,3 +7,4 @@ scripts/**
 images/logo.svg
 images/preview-*.png
 node_modules/**
+.claude/**

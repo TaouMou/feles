@@ -2,6 +2,13 @@
 
 All notable changes to Feles Theme are listed here, newest first. Versions before 2.0.0 were released as Gatito Nightly.
 
+## 2.4.0 - 2026-10-31
+
+- Status bar items hover in a solid shade of the accent instead of gray: one step darker in the dark themes and a pale tint in the light themes. The hover stays visible and readable on the accent-colored status bar while debugging.
+- The README lists each coat's accent colors, shows its previews under its description, has shorter install steps for Windows and Mac, and recommends the same settings the previews use.
+- The Marketplace page header uses the theme's dark background.
+- Added this changelog.
+
 ## 2.3.0 - 2026-10-18
 
 - Notebook outputs now share the editor background, and hovered or selected cells no longer show the output as a separate rectangle.
