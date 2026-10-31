@@ -116,9 +116,10 @@
   },
   "scripts": {
     "build": "node scripts/build-variants.js",
+    "check": "node scripts/check-contrast.js",
     "screenshots": "node scripts/screenshots.js",
     "package": "vsce package",
-    "start": "npm run build && npm run package",
+    "start": "npm run build && npm run check && npm run package",
     "publish": "vsce publish"
   },
   "devDependencies": {
